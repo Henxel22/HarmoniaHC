@@ -9,80 +9,105 @@
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+    /* Base variables for Dark Mode */
+    :root {
+      --bg-color: #202123;
+      --text-color: #dcdcdc;
+      --container-bg: #3c3f41;
+      --input-bg: #292b2d;
+      --input-text: #ffffff;
+      --button-bg: #ffffff;
+      --button-text: #202123;
+      --tooltip-color: #ff6666;
+      --table-border: #3c3f41;
+      --table-hover: rgba(255, 255, 255, 0.1);
+    }
+    /* Styles for Light Mode */
+    .light-mode {
+      --bg-color: #f4f4f4;
+      --text-color: #202123;
+      --container-bg: #ffffff;
+      --input-bg: #e0e0e0;
+      --input-text: #202123;
+      --button-bg: #202123;
+      --button-text: #ffffff;
+      --tooltip-color: #cc0000;
+      --table-border: #cccccc;
+      --table-hover: rgba(0, 0, 0, 0.05);
+    }
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #202123;
-      color: #dcdcdc;
+      background-color: var(--bg-color);
+      color: var(--text-color);
       margin: 0;
       padding: 0;
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
+      transition: background-color 0.3s, color 0.3s;
+      position: relative;
     }
     .container {
       width: 90%;
       max-width: 800px;
-      margin: 20px auto;
+      margin: 40px auto;
       padding: 20px;
-      background: #3c3f41;
+      background: var(--container-bg);
       border-radius: 8px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      transition: background 0.3s;
     }
     h1 {
       text-align: center;
       font-size: 1.8em;
+      margin-top: 40px;
     }
-    label,
-    select,
-    input,
-    button {
+    label, select, input, button {
       display: block;
       width: 100%;
-      margin-bottom: 15px;
+      margin-bottom: 5px;
       padding: 8px;
       border-radius: 4px;
       border: none;
       font-size: 0.9em;
     }
-    select,
-    input {
-      background-color: #292b2d;
-      color: #ffffff;
+    select, input {
+      background-color: var(--input-bg);
+      color: var(--input-text);
     }
     button {
-      background: #ffffff;
-      color: #202123;
+      background: var(--button-bg);
+      color: var(--button-text);
       cursor: pointer;
+      transition: background 0.3s;
     }
     button:hover {
       background: #f4f4f4;
     }
+    /* Minimalistic table style */
     table {
       width: 100%;
       margin-top: 20px;
       border-collapse: collapse;
-      background-color: #292b2d;
-      font-size: 0.9em;
+      background: transparent;
     }
-    th,
-    td {
-      border: 1px solid #3c3f41;
+    table thead {
+      border-bottom: 2px solid var(--table-border);
+    }
+    table th, table td {
+      padding: 10px;
       text-align: center;
-      padding: 8px;
+      border-bottom: 1px solid var(--table-border);
     }
-    th {
-      background-color: #ffffff;
-      color: #202123;
+    table tr:hover {
+      background-color: var(--table-hover);
     }
     @media (max-width: 600px) {
       .container {
         padding: 15px;
       }
-      label,
-      select,
-      input,
-      button {
+      label, select, input, button {
         font-size: 0.9em;
         padding: 8px;
       }
@@ -97,60 +122,113 @@
       opacity: 0;
       transition: opacity 1.5s ease-in-out;
     }
-    /* Estilo para el mensaje de confirmación */
+    /* Confirmation message style */
     #confirmation-message {
       position: fixed;
       bottom: 10px;
       left: 50%;
       transform: translateX(-50%);
-      background-color: #4CAF50; /* verde */
+      background-color: #4CAF50; /* green */
       color: white;
       padding: 10px 20px;
       border-radius: 4px;
       display: none;
       font-weight: bold;
     }
+    /* Tooltip style for validations */
+    .tooltip {
+      font-size: 0.8em;
+      color: var(--tooltip-color);
+      margin-bottom: 10px;
+      display: block;
+      height: 1em;
+    }
+    /* Dashboard card styles */
+    #dashboard {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    .card {
+      background: var(--input-bg);
+      padding: 10px;
+      margin: 5px;
+      border-radius: 4px;
+      flex: 1;
+      min-width: 150px;
+      text-align: center;
+    }
+    /* Theme toggle button with icons */
+    #theme-toggle {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 1.2em;
+      padding: 5px;
+    }
+    #theme-toggle i {
+      pointer-events: none;
+    }
   </style>
 </head>
-<body onload="fadeInContent()">
+<body onload="fadeInContent(); initValidation();">
+  <!-- Theme Toggle Button with Day/Night icons -->
+  <button id="theme-toggle" onclick="toggleTheme()">
+    <i id="theme-icon" class="fas fa-moon"></i>
+  </button>
+  
   <div id="fade-container">
     <div class="container">
       <p style="text-align: center; font-size: 0.9em; color: #bbb; margin-bottom: 20px;">
-        Fill in your work details (start time, end time, hourly rate, etc.), click "Calculate", and view your total pay below.
+        Fill in your work details (start time, end time, hourly rate, etc.), click "Calculate", and view your results.
       </p>
       <h1><i class="fas fa-clock"></i> Harmonia</h1>
 
-      <button onclick="setToday()" style="background: #ffffff; color: #202123;">Set Today's Date</button>
+      <button onclick="setToday()" style="background: var(--button-bg); color: var(--button-text);">Set Today's Date</button>
+      
       <label>Preset: <span>⚙️</span></label>
       <select id="preset" onchange="applyPreset()">
         <option value="custom">Custom</option>
         <option value="heathrow-weekdays">Heathrow Couriers Weekdays</option>
         <option value="heathrow-weekends">Heathrow Couriers Weekends</option>
       </select>
-
-      <label>Day: <span>🗓️</span></label>
-      <input type="number" id="day" />
-
+      <small class="tooltip" id="tooltip-preset"></small>
+      
+      <!-- Full Date Picker -->
+      <label>Date: <span>🗓️</span></label>
+      <input type="date" id="date" placeholder="Select date" />
+      <small class="tooltip" id="tooltip-date"></small>
+      
       <label>Start Time: <span>⏰</span></label>
       <input type="time" id="start-time" />
+      <small class="tooltip" id="tooltip-start-time"></small>
 
       <label>End Time: <span>⏱️</span></label>
       <input type="time" id="end-time" />
+      <small class="tooltip" id="tooltip-end-time"></small>
 
       <label>Hourly Rate (£): <span>💵</span></label>
-      <input type="number" id="hourly-rate" />
+      <input type="number" id="hourly-rate" placeholder="e.g., 11.5" />
+      <small class="tooltip" id="tooltip-hourly-rate"></small>
 
       <label>Overtime Rate (£): <span>💰</span></label>
-      <input type="number" id="overtime-rate" />
-
+      <input type="number" id="overtime-rate" placeholder="e.g., 17.25" />
+      <small class="tooltip" id="tooltip-overtime-rate"></small>
+      
       <label>Regular Hours Limit: <span>⏳</span></label>
       <input type="number" id="regular-hours-limit" value="8" />
+      <small class="tooltip" id="tooltip-regular-hours-limit"></small>
 
       <button onclick="calculateSalary()">Calculate</button>
       <p id="live-preview" style="margin-top: 10px; font-size: 0.9em; color: #bbb;"></p>
 
       <div id="result"></div>
 
+      <!-- History Table with Inline Editing -->
       <table id="history">
         <thead>
           <tr>
@@ -163,11 +241,25 @@
         </thead>
         <tbody id="history-body"></tbody>
       </table>
-      <div id="totals" style="margin-top: 20px; text-align: center;">
-        <p>Total Regular Hours: <strong><span id="total-regular-hours">0</span></strong> hrs</p>
-        <p>Total Worked Hours: <strong><span id="total-worked-hours">0</span></strong> hrs</p>
-        <p>Total Overtime Hours: <strong><span id="total-overtime-hours">0</span></strong> hrs</p>
-        <p>Total Pay: <strong>£<span id="total-pay">0.00</span></strong></p>
+      
+      <!-- Dashboard Summary -->
+      <div id="dashboard">
+        <div class="card">
+          <h3>Normal Hours</h3>
+          <p id="dashboard-normal-hours">0</p>
+        </div>
+        <div class="card">
+          <h3>Extra Hours</h3>
+          <p id="dashboard-overtime-hours">0</p>
+        </div>
+        <div class="card">
+          <h3>Total Hours Worked</h3>
+          <p id="dashboard-worked-hours">0</p>
+        </div>
+        <div class="card">
+          <h3>Total Money (£)</h3>
+          <p id="dashboard-total-pay">0.00</p>
+        </div>
       </div>
 
       <div style="text-align: center; margin-top: 20px;">
@@ -175,19 +267,21 @@
         <button onclick="restoreTable()">Return</button>
       </div>
       
-      <!-- Gráfico interactivo: Dinero total acumulado -->
+      <!-- Interactive Chart: Cumulative Total Pay -->
       <canvas id="myChart" style="max-width: 100%; margin-top: 20px;"></canvas>
     </div>
   </div>
 
-  <!-- Mensaje de confirmación -->
+  <!-- Confirmation Message -->
   <div id="confirmation-message"></div>
 
   <script>
     let history = JSON.parse(localStorage.getItem('workHistory')) || [];
-    let previousHistory = []; // Variable para almacenar el historial anterior
-    let myChart; // Variable global para el gráfico
+    let previousHistory = []; // To store previous history
+    let myChart; // Global variable for the chart
+    let editingIndex = null; // Index of the row currently being edited
 
+    // Save history to localStorage
     function saveHistory() {
       localStorage.setItem('workHistory', JSON.stringify(history));
     }
@@ -210,23 +304,26 @@
 
     function setToday() {
       const today = new Date();
-      document.getElementById('day').value = today.getDate();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      document.getElementById('date').value = `${yyyy}-${mm}-${dd}`;
     }
 
     function calculateSalary() {
       updateLivePreview();
+      const dateVal = document.getElementById('date').value;
       const startTime = document.getElementById('start-time').value;
       const endTime = document.getElementById('end-time').value;
       const hourlyRate = parseFloat(document.getElementById('hourly-rate').value);
       const overtimeRate = parseFloat(document.getElementById('overtime-rate').value);
 
-      if (!startTime || !endTime || isNaN(hourlyRate) || isNaN(overtimeRate)) {
+      if (!dateVal || !startTime || !endTime || isNaN(hourlyRate) || isNaN(overtimeRate)) {
         return alert('Invalid input');
       }
 
       const start = new Date(`1970-01-01T${startTime}`);
       const end = new Date(`1970-01-01T${endTime}`);
-
       if (end <= start) {
         return alert('End time must be after start time.');
       }
@@ -240,7 +337,7 @@
       const totalPay = regularHours * hourlyRate + overtimeHours * overtimeRate;
 
       history.push({
-        day: document.getElementById('day').value,
+        date: dateVal,
         workedHours: workedHours.toFixed(2),
         overtime: overtimeHours.toFixed(2),
         totalPay: totalPay.toFixed(2)
@@ -248,63 +345,88 @@
 
       saveHistory();
       updateHistory();
-      showConfirmationMessage(); // Muestra el mensaje de confirmación
+      showConfirmationMessage();
     }
 
     function updateHistory() {
-      const tbody = document.querySelector('#history tbody');
+      const tbody = document.getElementById('history-body');
       let totalWorked = 0,
           totalOvertime = 0,
-          totalRegular = 0,
-          totalPay = 0;
+          cumulativePay = 0;
+      // Sort history by date
+      history.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-      history.sort((a, b) => parseInt(a.day) - parseInt(b.day));
-      history.forEach(row => {
+      let html = '';
+      history.forEach((row, index) => {
         totalWorked += parseFloat(row.workedHours);
         totalOvertime += parseFloat(row.overtime);
-        totalRegular += parseFloat(row.workedHours) - parseFloat(row.overtime);
-        totalPay += parseFloat(row.totalPay);
-      });
-      tbody.innerHTML = history
-        .map((row, index) => {
-          return `
-          <tr>
-            <td>${getFormattedDate(row.day)}</td>
+        cumulativePay += parseFloat(row.totalPay);
+
+        if (editingIndex === index) {
+          // Render row in edit mode
+          html += `<tr>
+            <td><input type="date" id="edit-date-${index}" value="${row.date}" /></td>
+            <td><input type="number" step="0.01" id="edit-workedHours-${index}" value="${row.workedHours}" /></td>
+            <td><input type="number" step="0.01" id="edit-overtime-${index}" value="${row.overtime}" /></td>
+            <td><input type="number" step="0.01" id="edit-totalPay-${index}" value="${row.totalPay}" /></td>
+            <td>
+              <button onclick="saveEditedEntry(${index})">Save</button>
+              <button onclick="cancelEdit()">Cancel</button>
+            </td>
+          </tr>`;
+        } else {
+          html += `<tr>
+            <td>${getFormattedDate(row.date)}</td>
             <td>${row.workedHours}</td>
             <td>${row.overtime}</td>
             <td>£${row.totalPay}</td>
-            <td><button onclick="deleteEntry(${index})">❌</button></td>
+            <td>
+              <button onclick="editEntry(${index})">Edit</button>
+              <button onclick="deleteEntry(${index})">❌</button>
+            </td>
           </tr>`;
-        })
-        .join('');
+        }
+      });
+      tbody.innerHTML = html;
 
-      document.getElementById('total-regular-hours').textContent = totalRegular.toFixed(2);
-      document.getElementById('total-worked-hours').textContent = totalWorked.toFixed(2);
-      document.getElementById('total-overtime-hours').textContent = totalOvertime.toFixed(2);
-      document.getElementById('total-pay').textContent = totalPay.toFixed(2);
+      // Calculate Normal Hours = Total Worked Hours - Extra Hours
+      const totalNormal = totalWorked - totalOvertime;
 
-      // Actualiza el gráfico con el Total Pay acumulado
+      // Update Dashboard Summary
+      document.getElementById('dashboard-normal-hours').textContent = totalNormal.toFixed(2);
+      document.getElementById('dashboard-overtime-hours').textContent = totalOvertime.toFixed(2);
+      document.getElementById('dashboard-worked-hours').textContent = totalWorked.toFixed(2);
+      document.getElementById('dashboard-total-pay').textContent = cumulativePay.toFixed(2);
+
       updateChart();
     }
 
-    function clearTable() {
-      previousHistory = [...history]; // Copia el historial actual
-      localStorage.removeItem('workHistory');
-      history.length = 0; // Vacía el historial en memoria
+    function editEntry(index) {
+      editingIndex = index;
       updateHistory();
-      alert('Table cleared. Use "Return" to restore.');
     }
 
-    function restoreTable() {
-      if (previousHistory.length > 0) {
-        history = [...previousHistory]; // Restaura el historial guardado
-        localStorage.setItem('workHistory', JSON.stringify(history));
-        previousHistory = []; // Limpia la copia temporal
-        updateHistory();
-        alert('Table restored to previous state.');
-      } else {
-        alert('No previous data to restore.');
-      }
+    function saveEditedEntry(index) {
+      const newDate = document.getElementById(`edit-date-${index}`).value;
+      const newWorkedHours = document.getElementById(`edit-workedHours-${index}`).value;
+      const newOvertime = document.getElementById(`edit-overtime-${index}`).value;
+      const newTotalPay = document.getElementById(`edit-totalPay-${index}`).value;
+
+      history[index] = {
+        date: newDate,
+        workedHours: parseFloat(newWorkedHours).toFixed(2),
+        overtime: parseFloat(newOvertime).toFixed(2),
+        totalPay: parseFloat(newTotalPay).toFixed(2)
+      };
+
+      editingIndex = null;
+      saveHistory();
+      updateHistory();
+    }
+
+    function cancelEdit() {
+      editingIndex = null;
+      updateHistory();
     }
 
     function deleteEntry(index) {
@@ -313,11 +435,9 @@
       updateHistory();
     }
 
-    function getFormattedDate(day) {
-      const today = new Date();
-      today.setDate(day);
-      const options = { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' };
-      return today.toLocaleDateString('en-GB', options);
+    function getFormattedDate(dateStr) {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
     }
 
     function updateLivePreview() {
@@ -344,7 +464,7 @@
       const workedHours = (end - start) / (1000 * 60 * 60);
       const regularHours = Math.min(workedHours, regularHoursLimit);
       const overtimeHours = Math.max(0, workedHours - regularHoursLimit);
-      const totalPay = regularHours * hourlyRate + overtimeHours * overtimeRate;
+      const totalPay = regularHours * hourlyRate + (overtimeHours * overtimeRate);
 
       document.getElementById('live-preview').textContent = `Worked: ${workedHours.toFixed(2)} hrs | Overtime: ${overtimeHours.toFixed(2)} hrs | Total Pay: £${totalPay.toFixed(2)}`;
     }
@@ -353,10 +473,10 @@
       document.getElementById('fade-container').style.opacity = 1;
     }
 
-    // Función para mostrar el mensaje de confirmación en verde
+    // Show confirmation message with fade-in effect
     function showConfirmationMessage() {
       const messageEl = document.getElementById('confirmation-message');
-      messageEl.textContent = 'Información añadida con éxito!';
+      messageEl.textContent = 'Information added successfully!';
       messageEl.style.display = 'block';
       setTimeout(() => {
         messageEl.style.display = 'none';
@@ -364,7 +484,7 @@
     }
 
     // ---------------------------
-    // Funciones para el gráfico (Total Pay acumulado)
+    // Chart functions (Cumulative Total Pay)
     // ---------------------------
     function createChart() {
       const ctx = document.getElementById('myChart').getContext('2d');
@@ -374,7 +494,7 @@
           labels: [],
           datasets: [
             {
-              label: 'Total Pay Acumulado (£)',
+              label: 'Cumulative Total Pay (£)',
               data: [],
               borderColor: 'green',
               backgroundColor: 'rgba(0, 128, 0, 0.1)',
@@ -385,18 +505,12 @@
         },
         options: {
           responsive: true,
-          interaction: {
-            mode: 'index',
-            intersect: false
-          },
+          interaction: { mode: 'index', intersect: false },
           scales: {
             y: {
               type: 'linear',
               beginAtZero: true,
-              title: {
-                display: true,
-                text: 'Total Acumulado (£)'
-              }
+              title: { display: true, text: 'Cumulative Total (£)' }
             }
           }
         }
@@ -404,9 +518,8 @@
     }
 
     function updateChart() {
-      // Ordena el historial por día y calcula el total acumulado
-      const sortedHistory = [...history].sort((a, b) => parseInt(a.day) - parseInt(b.day));
-      const labels = sortedHistory.map(row => getFormattedDate(row.day));
+      const sortedHistory = [...history].sort((a, b) => new Date(a.date) - new Date(b.date));
+      const labels = sortedHistory.map(row => getFormattedDate(row.date));
       let cumulative = 0;
       const totalPayData = sortedHistory.map(row => {
         cumulative += parseFloat(row.totalPay);
@@ -420,12 +533,59 @@
       }
     }
 
-    // Al cargar la página, crea el gráfico y actualiza sus datos
     window.addEventListener('load', function () {
       createChart();
       updateChart();
     });
+
+    // ---------------------------
+    // Real-time validation functions
+    // ---------------------------
+    function validateField(fieldId, tooltipId, message) {
+      const field = document.getElementById(fieldId);
+      const tooltip = document.getElementById(tooltipId);
+      if (!field.value || field.value.trim() === '') {
+        tooltip.textContent = message;
+      } else {
+        tooltip.textContent = '';
+      }
+    }
+
+    function initValidation() {
+      document.getElementById('date').addEventListener('input', () => {
+        validateField('date', 'tooltip-date', 'Please select a valid date.');
+      });
+      document.getElementById('start-time').addEventListener('input', () => {
+        validateField('start-time', 'tooltip-start-time', 'Please enter a start time.');
+      });
+      document.getElementById('end-time').addEventListener('input', () => {
+        validateField('end-time', 'tooltip-end-time', 'Please enter an end time.');
+      });
+      document.getElementById('hourly-rate').addEventListener('input', () => {
+        validateField('hourly-rate', 'tooltip-hourly-rate', 'Please enter a valid hourly rate.');
+      });
+      document.getElementById('overtime-rate').addEventListener('input', () => {
+        validateField('overtime-rate', 'tooltip-overtime-rate', 'Please enter a valid overtime rate.');
+      });
+      document.getElementById('regular-hours-limit').addEventListener('input', () => {
+        validateField('regular-hours-limit', 'tooltip-regular-hours-limit', 'Please enter a valid regular hours limit.');
+      });
+    }
+
+    // ---------------------------
+    // Toggle Light/Dark Mode with Icon Change
+    // ---------------------------
+    function toggleTheme() {
+      document.body.classList.toggle('light-mode');
+      const icon = document.getElementById('theme-icon');
+      if (document.body.classList.contains('light-mode')) {
+        // If in light mode, show sun icon
+        icon.className = 'fas fa-sun';
+      } else {
+        // Otherwise, show moon icon
+        icon.className = 'fas fa-moon';
+      }
+    }
   </script>
 </body>
 </html>
-
