@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Harmonia - Timesheet Calculator</title>
-  <!-- Font Awesome (última versión) -->
+  <!-- Font Awesome (latest version) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -24,6 +24,7 @@
       --border-color: #444444;
       --hover-color: #333333;
     }
+    /* Modo claro: se usan tonos claros */
     .light-mode {
       --background-color: #F7F7F7;
       --text-color: #333333;
@@ -61,6 +62,7 @@
       font-size: 2em;
       color: var(--text-color);
     }
+    /* Botón de cambio de tema (pequeño, con ícono, ubicado en la esquina superior derecha) */
     #theme-toggle {
       position: absolute;
       right: 20px;
@@ -81,8 +83,7 @@
       margin: 40px auto;
       background: var(--container-bg);
       border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      overflow: hidden;
+      /* Se ha eliminado "overflow: hidden" para permitir que la gráfica ancha se muestre completa */
       transition: background 0.3s;
     }
     /* Aumentamos el padding horizontal para separar más de los bordes */
@@ -106,6 +107,7 @@
       background: var(--input-bg);
       color: var(--input-text);
     }
+    /* Contenedor grid para los inputs (2 filas de 3 columnas) */
     .grid-container {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -125,6 +127,7 @@
     button.action-btn:hover {
       background: var(--hover-color);
     }
+    /* Botón "Set Today's Date" */
     .set-today-btn {
       background: var(--button-bg);
       color: var(--button-text);
@@ -181,12 +184,12 @@
       font-size: 1.1em;
     }
     /* --------------------------------------------------
-       Contenedor de la Gráfica (centrado y ancho completo con margen)
+       Contenedor de la Gráfica (centrado y 3 veces más ancho)
        -------------------------------------------------- */
     #chart-container {
       margin: 20px auto;
-      height: 300px;
-      width: calc(100% - 40px); /* Ocupa casi el 100% del ancho del contenedor, dejando 20px de margen a cada lado */
+      height: 300px; 
+      width: calc(300% - 40px); /* 3 veces más ancho que antes, dejando 20px a cada lado */
     }
     #myChart {
       display: block;
@@ -449,6 +452,7 @@
       let totalWorked = 0,
           totalOvertime = 0,
           cumulativePay = 0;
+      // Ordenar historial por fecha
       history.sort((a, b) => new Date(a.date) - new Date(b.date));
       
       let html = '';
@@ -485,6 +489,7 @@
       
       const totalNormal = totalWorked - totalOvertime;
       
+      // Actualizar el resumen del Dashboard
       document.getElementById('dashboard-normal-hours').textContent = totalNormal.toFixed(2);
       document.getElementById('dashboard-overtime-hours').textContent = totalOvertime.toFixed(2);
       document.getElementById('dashboard-worked-hours').textContent = totalWorked.toFixed(2);
@@ -680,4 +685,3 @@
   </script>
 </body>
 </html>
-
