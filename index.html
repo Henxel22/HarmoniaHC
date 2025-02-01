@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Harmonia</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -30,7 +33,10 @@
       text-align: center;
       font-size: 1.8em;
     }
-    label, select, input, button {
+    label,
+    select,
+    input,
+    button {
       display: block;
       width: 100%;
       margin-bottom: 15px;
@@ -39,7 +45,8 @@
       border: none;
       font-size: 0.9em;
     }
-    select, input {
+    select,
+    input {
       background-color: #292b2d;
       color: #ffffff;
     }
@@ -58,7 +65,8 @@
       background-color: #292b2d;
       font-size: 0.9em;
     }
-    th, td {
+    th,
+    td {
       border: 1px solid #3c3f41;
       text-align: center;
       padding: 8px;
@@ -71,7 +79,10 @@
       .container {
         padding: 15px;
       }
-      label, select, input, button {
+      label,
+      select,
+      input,
+      button {
         font-size: 0.9em;
         padding: 8px;
       }
@@ -86,7 +97,7 @@
       opacity: 0;
       transition: opacity 1.5s ease-in-out;
     }
-    /* Nuevo estilo para el mensaje de confirmación */
+    /* Estilo para el mensaje de confirmación */
     #confirmation-message {
       position: fixed;
       bottom: 10px;
@@ -118,26 +129,26 @@
       </select>
 
       <label>Day: <span>🗓️</span></label>
-      <input type="number" id="day">
+      <input type="number" id="day" />
 
       <label>Start Time: <span>⏰</span></label>
-      <input type="time" id="start-time">
+      <input type="time" id="start-time" />
 
       <label>End Time: <span>⏱️</span></label>
-      <input type="time" id="end-time">
+      <input type="time" id="end-time" />
 
       <label>Hourly Rate (£): <span>💵</span></label>
-      <input type="number" id="hourly-rate">
+      <input type="number" id="hourly-rate" />
 
       <label>Overtime Rate (£): <span>💰</span></label>
-      <input type="number" id="overtime-rate">
-      
+      <input type="number" id="overtime-rate" />
+
       <label>Regular Hours Limit: <span>⏳</span></label>
-      <input type="number" id="regular-hours-limit" value="8">
+      <input type="number" id="regular-hours-limit" value="8" />
 
       <button onclick="calculateSalary()">Calculate</button>
       <p id="live-preview" style="margin-top: 10px; font-size: 0.9em; color: #bbb;"></p>
-      <!-- Se eliminó la duplicación de live-preview -->
+
       <div id="result"></div>
 
       <table id="history">
@@ -163,15 +174,19 @@
         <button onclick="clearTable()" style="margin-right: 10px;">Clear Table</button>
         <button onclick="restoreTable()">Return</button>
       </div>
+      
+      <!-- Nuevo gráfico interactivo -->
+      <canvas id="myChart" style="max-width: 100%; margin-top: 20px;"></canvas>
     </div>
   </div>
 
-  <!-- Nuevo mensaje de confirmación -->
+  <!-- Mensaje de confirmación -->
   <div id="confirmation-message"></div>
 
   <script>
     let history = JSON.parse(localStorage.getItem('workHistory')) || [];
     let previousHistory = []; // Variable para almacenar el historial anterior
+    let myChart; // Variable global para el gráfico
 
     function saveHistory() {
       localStorage.setItem('workHistory', JSON.stringify(history));
@@ -200,7 +215,6 @@
 
     function calculateSalary() {
       updateLivePreview();
-      // Recoger los valores de los inputs
       const startTime = document.getElementById('start-time').value;
       const endTime = document.getElementById('end-time').value;
       const hourlyRate = parseFloat(document.getElementById('hourly-rate').value);
@@ -218,10 +232,13 @@
       }
 
       const workedHours = (end - start) / (1000 * 60 * 60);
-      const regularHoursLimit = isNaN(parseFloat(document.getElementById('regular-hours-limit').value)) ? 0 : parseFloat(document.getElementById('regular-hours-limit').value);
+      const regularHoursLimit =
+        isNaN(parseFloat(document.getElementById('regular-hours-limit').value))
+          ? 0
+          : parseFloat(document.getElementById('regular-hours-limit').value);
       const regularHours = Math.min(workedHours, regularHoursLimit);
       const overtimeHours = Math.max(0, workedHours - regularHoursLimit);
-      const totalPay = (regularHours * hourlyRate) + (overtimeHours * overtimeRate);
+      const totalPay = regularHours * hourlyRate + overtimeHours * overtimeRate;
 
       history.push({
         day: document.getElementById('day').value,
@@ -232,12 +249,15 @@
 
       saveHistory();
       updateHistory();
-      showConfirmationMessage();  // Muestra el mensaje de confirmación
+      showConfirmationMessage(); // Muestra el mensaje de confirmación
     }
 
     function updateHistory() {
       const tbody = document.querySelector('#history tbody');
-      let totalWorked = 0, totalOvertime = 0, totalRegular = 0, totalPay = 0;
+      let totalWorked = 0,
+        totalOvertime = 0,
+        totalRegular = 0,
+        totalPay = 0;
 
       history.sort((a, b) => parseInt(a.day) - parseInt(b.day));
       history.forEach(row => {
@@ -246,8 +266,9 @@
         totalRegular += parseFloat(row.workedHours) - parseFloat(row.overtime);
         totalPay += parseFloat(row.totalPay);
       });
-      tbody.innerHTML = history.map((row, index) => {
-        return `
+      tbody.innerHTML = history
+        .map((row, index) => {
+          return `
           <tr>
             <td>${getFormattedDate(row.day)}</td>
             <td>${row.workedHours}</td>
@@ -255,12 +276,20 @@
             <td>£${row.totalPay}</td>
             <td><button onclick="deleteEntry(${index})">❌</button></td>
           </tr>`;
-      }).join('');
+        })
+        .join('');
 
-      document.getElementById('total-regular-hours').textContent = totalRegular.toFixed(2);
-      document.getElementById('total-worked-hours').textContent = totalWorked.toFixed(2);
-      document.getElementById('total-overtime-hours').textContent = totalOvertime.toFixed(2);
-      document.getElementById('total-pay').textContent = totalPay.toFixed(2);
+      document.getElementById('total-regular-hours').textContent =
+        totalRegular.toFixed(2);
+      document.getElementById('total-worked-hours').textContent =
+        totalWorked.toFixed(2);
+      document.getElementById('total-overtime-hours').textContent =
+        totalOvertime.toFixed(2);
+      document.getElementById('total-pay').textContent =
+        totalPay.toFixed(2);
+
+      // Actualiza el gráfico con los datos actuales
+      updateChart();
     }
 
     function clearTable() {
@@ -283,9 +312,6 @@
       }
     }
 
-    // Carga el historial al iniciar la página
-    updateHistory();
-
     function deleteEntry(index) {
       history.splice(index, 1);
       saveHistory();
@@ -295,7 +321,12 @@
     function getFormattedDate(day) {
       const today = new Date();
       today.setDate(day);
-      const options = { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' };
+      const options = {
+        weekday: 'long',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      };
       return today.toLocaleDateString('en-GB', options);
     }
 
@@ -304,26 +335,36 @@
       const endTime = document.getElementById('end-time').value;
       const hourlyRate = parseFloat(document.getElementById('hourly-rate').value);
       const overtimeRate = parseFloat(document.getElementById('overtime-rate').value);
-      const regularHoursLimit = isNaN(parseFloat(document.getElementById('regular-hours-limit').value)) ? 0 : parseFloat(document.getElementById('regular-hours-limit').value);
-      
+      const regularHoursLimit = isNaN(
+        parseFloat(document.getElementById('regular-hours-limit').value)
+      )
+        ? 0
+        : parseFloat(document.getElementById('regular-hours-limit').value);
+
       if (!startTime || !endTime || isNaN(hourlyRate) || isNaN(overtimeRate)) {
-        document.getElementById('live-preview').textContent = "Enter valid inputs to preview the calculation.";
+        document.getElementById('live-preview').textContent =
+          'Enter valid inputs to preview the calculation.';
         return;
       }
-      
+
       const start = new Date(`1970-01-01T${startTime}`);
       const end = new Date(`1970-01-01T${endTime}`);
       if (end <= start) {
-        document.getElementById('live-preview').textContent = "End time must be after start time.";
+        document.getElementById('live-preview').textContent =
+          'End time must be after start time.';
         return;
       }
-      
+
       const workedHours = (end - start) / (1000 * 60 * 60);
       const regularHours = Math.min(workedHours, regularHoursLimit);
       const overtimeHours = Math.max(0, workedHours - regularHoursLimit);
-      const totalPay = (regularHours * hourlyRate) + (overtimeHours * overtimeRate);
-      
-      document.getElementById('live-preview').textContent = `Worked: ${workedHours.toFixed(2)} hrs | Overtime: ${overtimeHours.toFixed(2)} hrs | Total Pay: £${totalPay.toFixed(2)}`;
+      const totalPay = regularHours * hourlyRate + overtimeHours * overtimeRate;
+
+      document.getElementById('live-preview').textContent = `Worked: ${workedHours.toFixed(
+        2
+      )} hrs | Overtime: ${overtimeHours.toFixed(2)} hrs | Total Pay: £${totalPay.toFixed(
+        2
+      )}`;
     }
 
     function fadeInContent() {
@@ -339,6 +380,102 @@
         messageEl.style.display = 'none';
       }, 2000);
     }
+
+    // ---------------------------
+    // Funciones para el gráfico
+    // ---------------------------
+    function createChart() {
+      const ctx = document.getElementById('myChart').getContext('2d');
+      myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: 'Worked Hours',
+              data: [],
+              borderColor: 'blue',
+              backgroundColor: 'rgba(0, 0, 255, 0.1)',
+              yAxisID: 'y1',
+              fill: false,
+              tension: 0.1
+            },
+            {
+              label: 'Overtime Hours',
+              data: [],
+              borderColor: 'orange',
+              backgroundColor: 'rgba(255, 165, 0, 0.1)',
+              yAxisID: 'y1',
+              fill: false,
+              tension: 0.1
+            },
+            {
+              label: 'Total Pay (£)',
+              data: [],
+              borderColor: 'green',
+              backgroundColor: 'rgba(0, 128, 0, 0.1)',
+              yAxisID: 'y2',
+              fill: false,
+              tension: 0.1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          interaction: {
+            mode: 'index',
+            intersect: false
+          },
+          stacked: false,
+          scales: {
+            y1: {
+              type: 'linear',
+              position: 'left',
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Hours'
+              }
+            },
+            y2: {
+              type: 'linear',
+              position: 'right',
+              beginAtZero: true,
+              grid: {
+                drawOnChartArea: false
+              },
+              title: {
+                display: true,
+                text: 'Total Pay (£)'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function updateChart() {
+      // Ordena el historial y extrae los datos
+      const sortedHistory = [...history].sort((a, b) => parseInt(a.day) - parseInt(b.day));
+      const labels = sortedHistory.map(row => getFormattedDate(row.day));
+      const workedData = sortedHistory.map(row => parseFloat(row.workedHours));
+      const overtimeData = sortedHistory.map(row => parseFloat(row.overtime));
+      const totalPayData = sortedHistory.map(row => parseFloat(row.totalPay));
+
+      if (myChart) {
+        myChart.data.labels = labels;
+        myChart.data.datasets[0].data = workedData;
+        myChart.data.datasets[1].data = overtimeData;
+        myChart.data.datasets[2].data = totalPayData;
+        myChart.update();
+      }
+    }
+
+    // Al cargar la página, crea el gráfico y actualiza sus datos
+    window.addEventListener('load', function () {
+      createChart();
+      updateChart();
+    });
   </script>
 </body>
 </html>
