@@ -86,20 +86,18 @@
         opacity: 0;
         transition: opacity 1.5s ease-in-out;
     }
-#confirmation-popup {
+#confirmation-bar {
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(76, 175, 80, 0.95);
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #4CAF50;
             color: white;
-            padding: 15px 20px;
-            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
             display: none;
             font-size: 1em;
-            text-align: center;
             font-weight: bold;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
             z-index: 1000;
         }
     </style>
@@ -201,6 +199,7 @@
 }
 
         function calculateSalary() {
+        showConfirmationBar();
         showConfirmationPopup();
         updateLivePreview();
         updateLivePreview();
@@ -352,14 +351,15 @@ function updateLivePreview() {
         
         document.getElementById('live-preview').textContent = `Worked: ${workedHours.toFixed(2)} hrs | Overtime: ${overtimeHours.toFixed(2)} hrs | Total Pay: £${totalPay.toFixed(2)}`;
     }
-function showConfirmationPopup() {
-        const popup = document.getElementById('confirmation-popup');
-        popup.style.display = 'block';
+function showConfirmationBar() {
+        const bar = document.getElementById('confirmation-bar');
+        bar.style.display = 'block';
         setTimeout(() => {
-            popup.style.display = 'none';
+            bar.style.display = 'none';
         }, 2000);
+    }, 2000);
     }
 </script>
-<div id="confirmation-popup">✔ Changes saved successfully!</div>
+<div id="confirmation-bar">✔ Changes saved successfully!</div>
 </body>
 </html>
