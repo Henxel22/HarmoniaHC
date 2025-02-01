@@ -10,7 +10,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     /* --------------------------------------------------
-       Paleta de colores (inspirada en ChatGPT.com – escala de grises y negros)
+       Paleta de colores (inspirada en ChatGPT.com – grises y negros)
        -------------------------------------------------- */
     :root {
       --background-color: #1E1E1E;      /* Fondo de página: gris muy oscuro */
@@ -24,7 +24,6 @@
       --border-color: #444444;
       --hover-color: #333333;
     }
-    /* Modo claro: se usan tonos claros */
     .light-mode {
       --background-color: #F7F7F7;
       --text-color: #333333;
@@ -62,7 +61,7 @@
       font-size: 2em;
       color: var(--text-color);
     }
-    /* Botón de cambio de tema (pequeño, con ícono, ubicado en la esquina superior derecha) */
+    /* Botón de cambio de tema (icon-only, pequeño, en la esquina superior derecha) */
     #theme-toggle {
       position: absolute;
       right: 20px;
@@ -83,10 +82,10 @@
       margin: 40px auto;
       background: var(--container-bg);
       border-radius: 8px;
-      /* Se ha eliminado "overflow: hidden" para permitir que la gráfica ancha se muestre completa */
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       transition: background 0.3s;
     }
-    /* Aumentamos el padding horizontal para separar más de los bordes */
+    /* Mayor padding horizontal para separar las entradas del borde */
     .content {
       padding: 20px 40px;
     }
@@ -184,12 +183,12 @@
       font-size: 1.1em;
     }
     /* --------------------------------------------------
-       Contenedor de la Gráfica (centrado y 3 veces más ancho)
+       Contenedor de la Gráfica
        -------------------------------------------------- */
     #chart-container {
-      margin: 20px auto;
+      margin: 20px 20px 20px 20px; /* 20px de margen a cada lado */
       height: 300px; 
-      width: calc(300% - 40px); /* 3 veces más ancho que antes, dejando 20px a cada lado */
+      width: calc(100% - 40px); /* Ocupa todo el ancho del contenedor menos 40px (20px a cada lado) */
     }
     #myChart {
       display: block;
@@ -273,7 +272,7 @@
   
   <div class="container" id="fade-container">
     <div class="content">
-      <!-- Preset (sin cambio de layout) -->
+      <!-- Preset (sin grid) -->
       <div class="input-group">
         <label for="preset">Preset <i class="fas fa-cog"></i></label>
         <select id="preset" onchange="applyPreset()">
@@ -284,13 +283,12 @@
         <small class="tooltip" id="tooltip-preset"></small>
       </div>
       
-      <!-- Contenedor grid para los inputs (2 filas de 3 columnas) -->
+      <!-- Contenedor grid para los demás inputs -->
       <div class="grid-container">
         <div class="input-group">
           <label for="date">Date <i class="fas fa-calendar-alt"></i></label>
           <input type="date" id="date" placeholder="Select date" />
           <small class="tooltip" id="tooltip-date"></small>
-          <!-- Botón "Set Today's Date" -->
           <button class="set-today-btn" onclick="setToday()">Set Today's Date</button>
         </div>
         <div class="input-group">
@@ -359,15 +357,13 @@
         </div>
       </div>
       
-      <div style="text-align: center; margin-top: 20px;">
-        <button class="action-btn" onclick="clearTable()" style="margin-right: 10px;">Clear Table</button>
-        <button class="action-btn" onclick="restoreTable()">Return</button>
-      </div>
+      <!-- Se ha eliminado el botón de borrar toda la tabla -->
       
-      <!-- Contenedor de la Gráfica -->
+      <!-- Contenedor de la Gráfica (mostrando día a día el aumento del dinero total) -->
       <div id="chart-container">
         <canvas id="myChart"></canvas>
       </div>
+      
     </div>
   </div>
   
@@ -376,11 +372,9 @@
   
   <script>
     let history = JSON.parse(localStorage.getItem('workHistory')) || [];
-    let previousHistory = []; // Para almacenar historial previo
-    let myChart; // Variable global para la gráfica
     let editingIndex = null; // Índice de la fila actualmente en edición
     
-    // Guardar historial en localStorage
+    // Función para guardar historial en localStorage
     function saveHistory() {
       localStorage.setItem('workHistory', JSON.stringify(history));
     }
@@ -452,7 +446,6 @@
       let totalWorked = 0,
           totalOvertime = 0,
           cumulativePay = 0;
-      // Ordenar historial por fecha
       history.sort((a, b) => new Date(a.date) - new Date(b.date));
       
       let html = '';
@@ -495,6 +488,7 @@
       document.getElementById('dashboard-worked-hours').textContent = totalWorked.toFixed(2);
       document.getElementById('dashboard-total-pay').textContent = cumulativePay.toFixed(2);
       
+      // Actualizamos la gráfica para que muestre día a día cómo sube el dinero total
       updateChart();
     }
     
@@ -581,11 +575,11 @@
     }
     
     // --------------------------------------------------
-    // Funciones para la Gráfica (Total acumulado)
+    // Funciones para la Gráfica (Cumulative Total Pay)
     // --------------------------------------------------
     function createChart() {
       const ctx = document.getElementById('myChart').getContext('2d');
-      myChart = new Chart(ctx, {
+      window.myChart = new Chart(ctx, {
         type: 'line',
         data: {
           labels: [],
@@ -624,10 +618,10 @@
         return cumulative;
       });
       
-      if (myChart) {
-        myChart.data.labels = labels;
-        myChart.data.datasets[0].data = totalPayData;
-        myChart.update();
+      if (window.myChart) {
+        window.myChart.data.labels = labels;
+        window.myChart.data.datasets[0].data = totalPayData;
+        window.myChart.update();
       }
     }
     
