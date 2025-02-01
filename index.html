@@ -116,7 +116,7 @@
   <div id="fade-container">
     <div class="container">
       <p style="text-align: center; font-size: 0.9em; color: #bbb; margin-bottom: 20px;">
-        Fill in your work details (start time, end time, hourly rate, etc.), click "Calculate", and view your total pay and hours below.
+        Fill in your work details (start time, end time, hourly rate, etc.), click "Calculate", and view your total pay below.
       </p>
       <h1><i class="fas fa-clock"></i> Harmonia</h1>
 
@@ -175,7 +175,7 @@
         <button onclick="restoreTable()">Return</button>
       </div>
       
-      <!-- Nuevo gráfico interactivo -->
+      <!-- Gráfico interactivo: Dinero total acumulado -->
       <canvas id="myChart" style="max-width: 100%; margin-top: 20px;"></canvas>
     </div>
   </div>
@@ -232,10 +232,9 @@
       }
 
       const workedHours = (end - start) / (1000 * 60 * 60);
-      const regularHoursLimit =
-        isNaN(parseFloat(document.getElementById('regular-hours-limit').value))
-          ? 0
-          : parseFloat(document.getElementById('regular-hours-limit').value);
+      const regularHoursLimit = isNaN(parseFloat(document.getElementById('regular-hours-limit').value))
+        ? 0
+        : parseFloat(document.getElementById('regular-hours-limit').value);
       const regularHours = Math.min(workedHours, regularHoursLimit);
       const overtimeHours = Math.max(0, workedHours - regularHoursLimit);
       const totalPay = regularHours * hourlyRate + overtimeHours * overtimeRate;
@@ -255,9 +254,9 @@
     function updateHistory() {
       const tbody = document.querySelector('#history tbody');
       let totalWorked = 0,
-        totalOvertime = 0,
-        totalRegular = 0,
-        totalPay = 0;
+          totalOvertime = 0,
+          totalRegular = 0,
+          totalPay = 0;
 
       history.sort((a, b) => parseInt(a.day) - parseInt(b.day));
       history.forEach(row => {
@@ -279,16 +278,12 @@
         })
         .join('');
 
-      document.getElementById('total-regular-hours').textContent =
-        totalRegular.toFixed(2);
-      document.getElementById('total-worked-hours').textContent =
-        totalWorked.toFixed(2);
-      document.getElementById('total-overtime-hours').textContent =
-        totalOvertime.toFixed(2);
-      document.getElementById('total-pay').textContent =
-        totalPay.toFixed(2);
+      document.getElementById('total-regular-hours').textContent = totalRegular.toFixed(2);
+      document.getElementById('total-worked-hours').textContent = totalWorked.toFixed(2);
+      document.getElementById('total-overtime-hours').textContent = totalOvertime.toFixed(2);
+      document.getElementById('total-pay').textContent = totalPay.toFixed(2);
 
-      // Actualiza el gráfico con los datos actuales
+      // Actualiza el gráfico con el Total Pay acumulado
       updateChart();
     }
 
@@ -321,12 +316,7 @@
     function getFormattedDate(day) {
       const today = new Date();
       today.setDate(day);
-      const options = {
-        weekday: 'long',
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      };
+      const options = { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' };
       return today.toLocaleDateString('en-GB', options);
     }
 
@@ -335,23 +325,19 @@
       const endTime = document.getElementById('end-time').value;
       const hourlyRate = parseFloat(document.getElementById('hourly-rate').value);
       const overtimeRate = parseFloat(document.getElementById('overtime-rate').value);
-      const regularHoursLimit = isNaN(
-        parseFloat(document.getElementById('regular-hours-limit').value)
-      )
+      const regularHoursLimit = isNaN(parseFloat(document.getElementById('regular-hours-limit').value))
         ? 0
         : parseFloat(document.getElementById('regular-hours-limit').value);
 
       if (!startTime || !endTime || isNaN(hourlyRate) || isNaN(overtimeRate)) {
-        document.getElementById('live-preview').textContent =
-          'Enter valid inputs to preview the calculation.';
+        document.getElementById('live-preview').textContent = 'Enter valid inputs to preview the calculation.';
         return;
       }
 
       const start = new Date(`1970-01-01T${startTime}`);
       const end = new Date(`1970-01-01T${endTime}`);
       if (end <= start) {
-        document.getElementById('live-preview').textContent =
-          'End time must be after start time.';
+        document.getElementById('live-preview').textContent = 'End time must be after start time.';
         return;
       }
 
@@ -360,11 +346,7 @@
       const overtimeHours = Math.max(0, workedHours - regularHoursLimit);
       const totalPay = regularHours * hourlyRate + overtimeHours * overtimeRate;
 
-      document.getElementById('live-preview').textContent = `Worked: ${workedHours.toFixed(
-        2
-      )} hrs | Overtime: ${overtimeHours.toFixed(2)} hrs | Total Pay: £${totalPay.toFixed(
-        2
-      )}`;
+      document.getElementById('live-preview').textContent = `Worked: ${workedHours.toFixed(2)} hrs | Overtime: ${overtimeHours.toFixed(2)} hrs | Total Pay: £${totalPay.toFixed(2)}`;
     }
 
     function fadeInContent() {
@@ -382,7 +364,7 @@
     }
 
     // ---------------------------
-    // Funciones para el gráfico
+    // Funciones para el gráfico (Total Pay acumulado)
     // ---------------------------
     function createChart() {
       const ctx = document.getElementById('myChart').getContext('2d');
@@ -392,29 +374,10 @@
           labels: [],
           datasets: [
             {
-              label: 'Worked Hours',
-              data: [],
-              borderColor: 'blue',
-              backgroundColor: 'rgba(0, 0, 255, 0.1)',
-              yAxisID: 'y1',
-              fill: false,
-              tension: 0.1
-            },
-            {
-              label: 'Overtime Hours',
-              data: [],
-              borderColor: 'orange',
-              backgroundColor: 'rgba(255, 165, 0, 0.1)',
-              yAxisID: 'y1',
-              fill: false,
-              tension: 0.1
-            },
-            {
-              label: 'Total Pay (£)',
+              label: 'Total Pay Acumulado (£)',
               data: [],
               borderColor: 'green',
               backgroundColor: 'rgba(0, 128, 0, 0.1)',
-              yAxisID: 'y2',
               fill: false,
               tension: 0.1
             }
@@ -426,27 +389,13 @@
             mode: 'index',
             intersect: false
           },
-          stacked: false,
           scales: {
-            y1: {
+            y: {
               type: 'linear',
-              position: 'left',
               beginAtZero: true,
               title: {
                 display: true,
-                text: 'Hours'
-              }
-            },
-            y2: {
-              type: 'linear',
-              position: 'right',
-              beginAtZero: true,
-              grid: {
-                drawOnChartArea: false
-              },
-              title: {
-                display: true,
-                text: 'Total Pay (£)'
+                text: 'Total Acumulado (£)'
               }
             }
           }
@@ -455,18 +404,18 @@
     }
 
     function updateChart() {
-      // Ordena el historial y extrae los datos
+      // Ordena el historial por día y calcula el total acumulado
       const sortedHistory = [...history].sort((a, b) => parseInt(a.day) - parseInt(b.day));
       const labels = sortedHistory.map(row => getFormattedDate(row.day));
-      const workedData = sortedHistory.map(row => parseFloat(row.workedHours));
-      const overtimeData = sortedHistory.map(row => parseFloat(row.overtime));
-      const totalPayData = sortedHistory.map(row => parseFloat(row.totalPay));
+      let cumulative = 0;
+      const totalPayData = sortedHistory.map(row => {
+        cumulative += parseFloat(row.totalPay);
+        return cumulative;
+      });
 
       if (myChart) {
         myChart.data.labels = labels;
-        myChart.data.datasets[0].data = workedData;
-        myChart.data.datasets[1].data = overtimeData;
-        myChart.data.datasets[2].data = totalPayData;
+        myChart.data.datasets[0].data = totalPayData;
         myChart.update();
       }
     }
