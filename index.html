@@ -82,10 +82,31 @@
                 font-size: 0.8em;
             }
         }
+        #fade-container {
+        opacity: 0;
+        transition: opacity 1.5s ease-in-out;
+    }
+#confirmation-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(76, 175, 80, 0.95);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            display: none;
+            font-size: 1em;
+            text-align: center;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+        }
     </style>
 </head>
-<body>
-    <div class="container">
+<body onload="fadeInContent()">
+    <div id="fade-container">
+        <div class="container">
         <p style="text-align: center; font-size: 0.9em; color: #bbb; margin-bottom: 20px;">Fill in your work details (start time, end time, hourly rate, etc.), click "Calculate", and view your total pay and hours below.</p>
         <h1><i class="fas fa-clock"></i> Harmonia</h1>
 
@@ -97,24 +118,9 @@
             <option value="heathrow-weekends">Heathrow Couriers Weekends</option>
         </select>
 
-        <label>Month: <span>📅</span></label>
-        <select id="month">
-            <option value="1">January</option>
-            <option value="2">February</option>
-            <option value="3">March</option>
-            <option value="4">April</option>
-            <option value="5">May</option>
-            <option value="6">June</option>
-            <option value="7">July</option>
-            <option value="8">August</option>
-            <option value="9">September</option>
-            <option value="10">October</option>
-            <option value="11">November</option>
-            <option value="12">December</option>
-        </select>
+        
 
-        <label>Year: <span>📆</span></label>
-        <input type="number" id="year" value="2024">
+        
 
         <label>Day: <span>🗓️</span></label>
         <input type="number" id="day">
@@ -135,21 +141,25 @@
         <input type="number" id="regular-hours-limit" value="8">
 
         <button onclick="calculateSalary()">Calculate</button>
+        <p id="live-preview" style="margin-top: 10px; font-size: 0.9em; color: #bbb;"></p>
+        <p id="live-preview" style="margin-top: 10px; font-size: 0.9em; color: #bbb;"></p>
 
         <div id="result"></div>
 
         <table id="history">
             <thead>
                 <tr>
-                    <th>Day</th>
+                    <th>Date</th>
                     <th>Worked Hours</th>
                     <th>Overtime</th>
                     <th>Total Pay (£)</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
-            <tbody></tbody>
+            <tbody id="history-body"></tbody>
         </table>
         <div id="totals" style="margin-top: 20px; text-align: center;">
+            <p>Total Regular Hours: <strong><span id="total-regular-hours">0</span></strong> hrs</p>
             <p>Total Worked Hours: <strong><span id="total-worked-hours">0</span></strong> hrs</p>
             <p>Total Overtime Hours: <strong><span id="total-overtime-hours">0</span></strong> hrs</p>
             <p>Total Pay: <strong>£<span id="total-pay">0.00</span></strong></p>
@@ -172,9 +182,11 @@
         function applyPreset() {
             const preset = document.getElementById('preset').value;
             if (preset === 'heathrow-weekdays') {
+                document.getElementById('regular-hours-limit').value = 8;
                 document.getElementById('hourly-rate').value = 11.5;
                 document.getElementById('overtime-rate').value = 17.25;
             } else if (preset === 'heathrow-weekends') {
+                document.getElementById('regular-hours-limit').value = 0;
                 document.getElementById('hourly-rate').value = 17.25;
                 document.getElementById('overtime-rate').value = 17.25;
             } else {
@@ -184,13 +196,14 @@
         }
 
         function setToday() {
-            const today = new Date();
-            document.getElementById('year').value = today.getFullYear();
-            document.getElementById('month').value = today.getMonth() + 1;
-            document.getElementById('day').value = today.getDate();
-        }
+    const today = new Date();
+    document.getElementById('day').value = today.getDate();
+}
 
         function calculateSalary() {
+        showConfirmationPopup();
+        updateLivePreview();
+        updateLivePreview();
             const startTime = document.getElementById('start-time').value;
             const endTime = document.getElementById('end-time').value;
             const hourlyRate = parseFloat(document.getElementById('hourly-rate').value);
@@ -226,22 +239,26 @@
 
         function updateHistory() {
             const tbody = document.querySelector('#history tbody');
-            let totalWorked = 0, totalOvertime = 0, totalPay = 0;
+            let totalWorked = 0, totalOvertime = 0, totalRegular = 0, totalPay = 0;
 
             history.sort((a, b) => parseInt(a.day) - parseInt(b.day));
-            tbody.innerHTML = history.map(row => {
+            history.forEach(row => {
                 totalWorked += parseFloat(row.workedHours);
                 totalOvertime += parseFloat(row.overtime);
+                totalRegular += parseFloat(row.workedHours) - parseFloat(row.overtime);
                 totalPay += parseFloat(row.totalPay);
+            });
+            tbody.innerHTML = history.map((row, index) => {
                 return `
                     <tr>
-                        <td>${row.day}</td>
+                        <td>${getFormattedDate(row.day)}</td>
                         <td>${row.workedHours}</td>
                         <td>${row.overtime}</td>
                         <td>£${row.totalPay}</td>
-                    </tr>`;
+                    <td><button onclick="deleteEntry(${index})">❌</button></td></tr>`;
             }).join('');
 
+            document.getElementById('total-regular-hours').textContent = totalRegular.toFixed(2);
             document.getElementById('total-worked-hours').textContent = totalWorked.toFixed(2);
             document.getElementById('total-overtime-hours').textContent = totalOvertime.toFixed(2);
             document.getElementById('total-pay').textContent = totalPay.toFixed(2);
@@ -269,6 +286,80 @@
 
         // Load history on page load
         updateHistory();
-    </script>
+    function deleteEntry(index) {
+        history.splice(index, 1);
+        saveHistory();
+        updateHistory();
+    }
+    function getFormattedDate(day) {
+    const today = new Date();
+    today.setDate(day);
+    const options = { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' };
+    return today.toLocaleDateString('en-GB', options);
+}
+function updateLivePreview() {
+        const startTime = document.getElementById('start-time').value;
+        const endTime = document.getElementById('end-time').value;
+        const hourlyRate = parseFloat(document.getElementById('hourly-rate').value);
+        const overtimeRate = parseFloat(document.getElementById('overtime-rate').value);
+        const regularHoursLimit = isNaN(parseFloat(document.getElementById('regular-hours-limit').value)) ? 0 : parseFloat(document.getElementById('regular-hours-limit').value);
+        
+        if (!startTime || !endTime || isNaN(hourlyRate) || isNaN(overtimeRate)) {
+            document.getElementById('live-preview').textContent = "Enter valid inputs to preview the calculation.";
+            return;
+        }
+        
+        const start = new Date(`1970-01-01T${startTime}`);
+        const end = new Date(`1970-01-01T${endTime}`);
+        if (end <= start) {
+            document.getElementById('live-preview').textContent = "End time must be after start time.";
+            return;
+        }
+        
+        const workedHours = (end - start) / (1000 * 60 * 60);
+        const regularHours = Math.min(workedHours, regularHoursLimit);
+        const overtimeHours = Math.max(0, workedHours - regularHoursLimit);
+        const totalPay = (regularHours * hourlyRate) + (overtimeHours * overtimeRate);
+        
+        document.getElementById('live-preview').textContent = `Worked: ${workedHours.toFixed(2)} hrs | Overtime: ${overtimeHours.toFixed(2)} hrs | Total Pay: £${totalPay.toFixed(2)}`;
+    }
+    function fadeInContent() {
+        document.getElementById('fade-container').style.opacity = 1;
+    }
+function updateLivePreview() {
+        const startTime = document.getElementById('start-time').value;
+        const endTime = document.getElementById('end-time').value;
+        const hourlyRate = parseFloat(document.getElementById('hourly-rate').value);
+        const overtimeRate = parseFloat(document.getElementById('overtime-rate').value);
+        const regularHoursLimit = isNaN(parseFloat(document.getElementById('regular-hours-limit').value)) ? 0 : parseFloat(document.getElementById('regular-hours-limit').value);
+        
+        if (!startTime || !endTime || isNaN(hourlyRate) || isNaN(overtimeRate)) {
+            document.getElementById('live-preview').textContent = "Enter valid inputs to preview the calculation.";
+            return;
+        }
+        
+        const start = new Date(`1970-01-01T${startTime}`);
+        const end = new Date(`1970-01-01T${endTime}`);
+        if (end <= start) {
+            document.getElementById('live-preview').textContent = "End time must be after start time.";
+            return;
+        }
+        
+        const workedHours = (end - start) / (1000 * 60 * 60);
+        const regularHours = Math.min(workedHours, regularHoursLimit);
+        const overtimeHours = Math.max(0, workedHours - regularHoursLimit);
+        const totalPay = (regularHours * hourlyRate) + (overtimeHours * overtimeRate);
+        
+        document.getElementById('live-preview').textContent = `Worked: ${workedHours.toFixed(2)} hrs | Overtime: ${overtimeHours.toFixed(2)} hrs | Total Pay: £${totalPay.toFixed(2)}`;
+    }
+function showConfirmationPopup() {
+        const popup = document.getElementById('confirmation-popup');
+        popup.style.display = 'block';
+        setTimeout(() => {
+            popup.style.display = 'none';
+        }, 2000);
+    }
+</script>
+<div id="confirmation-popup">✔ Changes saved successfully!</div>
 </body>
 </html>
