@@ -6,8 +6,6 @@
   <title>Harmonia - Timesheet Calculator</title>
   <!-- Font Awesome (latest version) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     /* --------------------------------------------------
        Paleta de colores (inspirada en ChatGPT.com – grises y negros)
@@ -85,7 +83,7 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       transition: background 0.3s;
     }
-    /* Mayor padding horizontal para separar las entradas del borde */
+    /* Mayor padding horizontal para dejar más espacio a los laterales */
     .content {
       padding: 20px 40px;
     }
@@ -183,10 +181,10 @@
       font-size: 1.1em;
     }
     /* --------------------------------------------------
-       Contenedor de la Gráfica
+       Contenedor de la Gráfica (para mostrar el total acumulado día a día)
        -------------------------------------------------- */
     #chart-container {
-      margin: 20px 20px 20px 20px; /* 20px de margen a cada lado */
+      margin: 20px;
       height: 300px; 
       width: calc(100% - 40px); /* Ocupa todo el ancho del contenedor menos 40px (20px a cada lado) */
     }
@@ -279,11 +277,13 @@
           <option value="custom">Custom</option>
           <option value="heathrow-weekdays">Heathrow Couriers Weekdays</option>
           <option value="heathrow-weekends">Heathrow Couriers Weekends</option>
+          <option value="heathrow-2025-weekdays">Heathrow Couriers 2025 Weekdays</option>
+          <option value="heathrow-2025-weekends">Heathrow Couriers 2025 Weekends</option>
         </select>
         <small class="tooltip" id="tooltip-preset"></small>
       </div>
       
-      <!-- Contenedor grid para los demás inputs -->
+      <!-- Grid container para los demás inputs -->
       <div class="grid-container">
         <div class="input-group">
           <label for="date">Date <i class="fas fa-calendar-alt"></i></label>
@@ -357,9 +357,7 @@
         </div>
       </div>
       
-      <!-- Se ha eliminado el botón de borrar toda la tabla -->
-      
-      <!-- Contenedor de la Gráfica (mostrando día a día el aumento del dinero total) -->
+      <!-- Contenedor de la Gráfica que muestra el total acumulado día a día -->
       <div id="chart-container">
         <canvas id="myChart"></canvas>
       </div>
@@ -374,7 +372,7 @@
     let history = JSON.parse(localStorage.getItem('workHistory')) || [];
     let editingIndex = null; // Índice de la fila actualmente en edición
     
-    // Función para guardar historial en localStorage
+    // Función para guardar el historial en localStorage
     function saveHistory() {
       localStorage.setItem('workHistory', JSON.stringify(history));
     }
@@ -389,6 +387,14 @@
         document.getElementById('regular-hours-limit').value = 0;
         document.getElementById('hourly-rate').value = 17.25;
         document.getElementById('overtime-rate').value = 17.25;
+      } else if (preset === 'heathrow-2025-weekdays') {
+        document.getElementById('regular-hours-limit').value = 8;
+        document.getElementById('hourly-rate').value = 13.00;
+        document.getElementById('overtime-rate').value = 19.50;
+      } else if (preset === 'heathrow-2025-weekends') {
+        document.getElementById('regular-hours-limit').value = 0;
+        document.getElementById('hourly-rate').value = 19.50;  // Tarifa normal modificada a 19.50
+        document.getElementById('overtime-rate').value = 19.50;
       } else {
         document.getElementById('hourly-rate').value = '';
         document.getElementById('overtime-rate').value = '';
@@ -488,7 +494,6 @@
       document.getElementById('dashboard-worked-hours').textContent = totalWorked.toFixed(2);
       document.getElementById('dashboard-total-pay').textContent = cumulativePay.toFixed(2);
       
-      // Actualizamos la gráfica para que muestre día a día cómo sube el dinero total
       updateChart();
     }
     
@@ -575,7 +580,7 @@
     }
     
     // --------------------------------------------------
-    // Funciones para la Gráfica (Cumulative Total Pay)
+    // Funciones para la Gráfica (Total acumulado)
     // --------------------------------------------------
     function createChart() {
       const ctx = document.getElementById('myChart').getContext('2d');
